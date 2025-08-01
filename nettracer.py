@@ -11,11 +11,12 @@ def main(target, proto, count, max_hops):
     NetTracer: trace hops and plot latency graph.
     """
     print(f"Tracing {target} via {proto.upper()} (count={count}, max_hops={max_hops})")
-    # TODO: perform traceroute & collect data
     data = traceroute(target, proto, count, max_hops)
     for hop in data:
         print(f"{hop['ttl']:2}  {hop['ip']:15}  {hop['latency'] or '-':>6.3f}s")
-    # TODO: plotting
+
+    plot_hops(data)
+
 
 
 from scapy.all import IP, ICMP, TCP, UDP, sr1
@@ -39,6 +40,22 @@ def traceroute(target, proto, count, max_hops):
         if reply and reply.src == target:
             break
     return results
+
+import matplotlib.pyplot as plt
+
+def plot_hops(data, out="nettracer.png"):
+    hops = [d["ttl"] for d in data]
+    lats = [d["latency"] or 0 for d in data]
+    plt.figure(figsize=(8,4))
+    plt.plot(hops, lats, marker="o")
+    plt.xticks(hops)
+    plt.xlabel("Hop (TTL)")
+    plt.ylabel("Avg Latency (s)")
+    plt.title("NetTracer Latency per Hop")
+    plt.grid(True)
+    plt.savefig(out)
+    print(f"Saved plot to {out}")
+
 
 if __name__ == "__main__":
     main()
