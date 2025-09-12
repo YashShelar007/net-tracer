@@ -1,0 +1,85 @@
+{
+  "target": "8.8.8.8",
+  "proto": "icmp",
+  "count": 3,
+  "max_hops": 30,
+  "timeout": 2.0,
+  "runs": 10,
+  "duration_s": {
+    "mean": 36.9812,
+    "median": 36.7704,
+    "p95": 38.5564,
+    "stdev": 1.8854
+  },
+  "responded_hops": {
+    "mean": 11.5,
+    "median": 12.0
+  },
+  "samples": [
+    {
+      "duration_s": 38.5564,
+      "responded_hops": 11,
+      "total_hops_listed": 15
+    },
+    {
+      "duration_s": 36.701,
+      "responded_hops": 12,
+      "total_hops_listed": 15
+    },
+    {
+      "duration_s": 38.2214,
+      "responded_hops": 12,
+      "total_hops_listed": 15
+    },
+    {
+      "duration_s": 36.8398,
+      "responded_hops": 12,
+      "total_hops_listed": 15
+    },
+    {
+      "duration_s": 40.5432,
+      "responded_hops": 10,
+      "total_hops_listed": 15
+    },
+    {
+      "duration_s": 35.9759,
+      "responded_hops": 12,
+      "total_hops_listed": 15
+    },
+    {
+      "duration_s": 35.6177,
+      "responded_hops": 12,
+      "total_hops_listed": 15
+    },
+    {
+      "duration_s": 38.5238,
+      "responded_hops": 11,
+      "total_hops_listed": 15
+    },
+    {
+      "duration_s": 34.0053,
+      "responded_hops": 12,
+      "total_hops_listed": 15
+    },
+    {
+      "duration_s": 34.8278,
+      "responded_hops": 11,
+      "total_hops_listed": 15
+    }
+  ],
+  "cmd_template": [
+    "D:\\Job Search\\Companies\\Fovus Corporation\\NetTracer\\venv\\Scripts\\python.exe",
+    "nettracer.py",
+    "--target",
+    "8.8.8.8",
+    "--proto",
+    "icmp",
+    "--count",
+    "3",
+    "--max-hops",
+    "30",
+    "--timeout",
+    "2.0",
+    "--no-plot"
+  ]
+}
