@@ -20,9 +20,9 @@ pip install -r requirements.txt # scapy, matplotlib, click
 python nettracer.py --target example.com --no-plot
 ```
 
-Python 3.9 or newer is the stated requirement; I installed the dependencies and ran the script on Python 3.13 (macOS). On macOS and Linux you also need `traceroute` installed. Windows uses the built-in `tracert`.
+Python 3.9 or newer is the stated requirement. On macOS and Linux you also need `traceroute` installed. Windows uses the built-in `tracert`.
 
-The Windows path and the Scapy path were not run for this README (not verified: only a macOS machine was available, without root).
+Checked on macOS with Python 3.13 on 2026-10-07. The Windows path and the Scapy path were not re-run.
 
 Options:
 
@@ -55,11 +55,11 @@ TTL  IP/Host           Avg Latency
 
 The Scapy path sends `--count` probes per TTL with `sr1`, averages the round-trip times that came back, and stops when a reply comes from the target. The OS path runs `traceroute -n -m <hops> -q <count> -w <timeout>` (or `tracert -d -h <hops> -w <ms>` on Windows), then parses each line with a regular expression and averages the millisecond values it finds.
 
-`bench.py` runs `nettracer.py` repeatedly with `--no-plot`, parses the console table, and writes timing statistics to `bench_results.json`. `--print-sample` additionally prints a summary sentence phrased as a resume bullet. The committed `bench_results.json` is one such run: 10 traces to 8.8.8.8 with 3 probes per hop, mean 36.98 s, median 36.77 s, about 15 hops listed and a median of 12 responding. It was produced on a Windows machine, and I did not reproduce it. Per run, 10 to 12 of the 15 listed hops responded.
+`bench.py` runs `nettracer.py` repeatedly with `--no-plot`, parses the console table, and writes timing statistics to `bench_results.json`. `--print-sample` additionally prints a one-sentence summary of the run (mean trace time, run count, target, probes per hop, median responding hops). The committed `bench_results.json` is one such run: 10 traces to 8.8.8.8 with 3 probes per hop, mean 36.98 s, median 36.77 s, about 15 hops listed and a median of 12 responding. It was produced on a Windows machine and has not been reproduced. Per run, 10 to 12 of the 15 listed hops responded.
 
 ## Known limits
 
-- **macOS: the OS path prints an empty table.** The code passes the timeout as a float (`-w 2.0`), and macOS `traceroute` rejects that with `"2.0" bad value for wait time`. The error goes to stderr and is not parsed. Reproduced on macOS with `--timeout 1`. Linux `traceroute` accepts decimals; I did not test it.
+- **macOS: the OS path prints an empty table.** The code passes the timeout as a float (`-w 2.0`), and macOS `traceroute` rejects that with `"2.0" bad value for wait time`. The error goes to stderr and is not parsed. Reproduced on macOS with `--timeout 1`. Linux `traceroute` accepts decimals (untested here).
 - Hops that do not answer are plotted at 0 ms, so the chart shows dips to zero where the real value is unknown (hops 4, 6, 7 and 11 in the chart above).
 - The Scapy readiness check is a heuristic on `conf.use_pcap` and related flags.
 - The OS parser reads the first IP on each line, so hops where several routers answer show only one.
