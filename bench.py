@@ -133,7 +133,8 @@ def main():
                 "total_hops_listed": r["total_hops_listed"],
             } for r in runs
         ],
-        "cmd_template": [sys.executable, str(script)] + base_args + ["--no-plot"],
+        # Literal "python", not sys.executable: an absolute interpreter path leaks the local directory layout.
+        "cmd_template": ["python", str(script)] + base_args + ["--no-plot"],
     }
 
     Path(args.out).write_text(json.dumps(summary, indent=2))
