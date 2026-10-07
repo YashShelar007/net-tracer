@@ -134,19 +134,23 @@ def _same_host(ip_or_host_a: str, ip_or_host_b: str) -> bool:
 
 # ------------------------- OS fallback path -------------------------
 
+def _os_traceroute_cmd(system: str, target: str, count: int, max_hops: int, timeout: float) -> List[str]:
+    """Build the tracert/traceroute argv for `system` (platform.system().lower())."""
+    if system == "windows":
+        return ["tracert", "-d", "-h", str(max_hops), "-w", str(int(timeout * 1000)), target]
+    # On macOS: `traceroute -n -m <max_hops> -q <count> -w <timeout> <target>`
+    # On Linux: same flags work for most distros.
+    q = max(1, min(5, count))
+    return ["traceroute", "-n", "-m", str(max_hops), "-q", str(q), "-w", str(timeout), target]
+
+
 def _traceroute_os(target: str, count: int, max_hops: int, timeout: float) -> List[Hop]:
     """
     Use system tracert/traceroute and parse output.
     We average the three probes per hop when available.
     """
     system = platform.system().lower()
-    if system == "windows":
-        cmd = ["tracert", "-d", "-h", str(max_hops), "-w", str(int(timeout * 1000)), target]
-    else:
-        # On macOS: `traceroute -n -m <max_hops> -q <count> -w <timeout> <target>`
-        # On Linux: same flags work for most distros.
-        q = max(1, min(5, count))
-        cmd = ["traceroute", "-n", "-m", str(max_hops), "-q", str(q), "-w", str(timeout), target]
+    cmd = _os_traceroute_cmd(system, target, count, max_hops, timeout)
 
     if not _which(cmd[0]):
         raise RuntimeError(f"Neither Scapy nor '{cmd[0]}' is available. Install Npcap and run as Admin, or install {cmd[0]}.")
