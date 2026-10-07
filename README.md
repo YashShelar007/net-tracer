@@ -1,158 +1,73 @@
-# NetTracer
+# net-tracer
 
-**Network Path & Latency Visualizer**
-A CLI tool to trace routes (ICMP/TCP/UDP) and visualize per-hop latency.
+NetTracer is a command-line traceroute that prints the hops to a host with their average latency and saves a per-hop latency chart. It sends ICMP, UDP or TCP probes through Scapy when it has raw-socket access, and otherwise runs the operating system's `traceroute` or `tracert` and parses the output. It is for anyone who wants a quick latency picture of a network path without opening a separate plotting step.
 
----
+## What it does not do
 
-## 🚀 Features
+- It is not a replacement for `mtr` or a monitoring tool. It runs one trace and exits.
+- On the OS fallback path, `--proto` and `--dport` have no effect; the system tool picks its own probe type.
+- It does not resolve hop names. Hops are shown as IP addresses.
+- It has no tests.
 
-- 🔍 **Multi-protocol traceroute**: `icmp`, `tcp`, or `udp`
-- 🧭 **Cross-platform**:
-
-  - Uses **Scapy** when raw sockets are available
-  - Automatically falls back to the OS tool (**`tracert` on Windows**, **`traceroute` on macOS/Linux**)
-
-- 📊 **Per-hop latency chart** (Matplotlib)
-- 📦 **Simple CLI** with tidy table output
-
----
-
-## 🛠 Prerequisites
-
-### Windows
-
-- **Python ≥ 3.9**
-- Works out of the box (uses `tracert`)
-  Optional for raw sockets (Scapy path):
-
-  - **Npcap** (default install)
-  - Run terminal **as Administrator**
-
-### macOS / Linux
-
-- **Python ≥ 3.9**
-- `traceroute` installed (`brew install traceroute` or `sudo apt install traceroute`)
-- Optional for raw sockets (Scapy path):
-
-  - **sudo** privileges
-  - **libpcap** / headers (e.g., `sudo apt install libpcap-dev`)
-  - **tcpdump** (optional, for debugging)
-
-> If Scapy cannot open raw sockets or libpcap is missing, NetTracer automatically uses the system traceroute utility.
-
----
-
-## 📦 Installation
+## Quickstart
 
 ```bash
-# 1) Clone & enter
-git clone https://github.com/YashShelar007/NetTracer.git
-cd NetTracer
-
-# 2) Create & activate virtualenv
-python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-# source venv/bin/activate
-
-# 3) Install dependencies
-pip install -r requirements.txt
+git clone https://github.com/YashShelar007/net-tracer.git
+cd net-tracer
+python3 -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt # scapy, matplotlib, click
+python nettracer.py --target example.com --no-plot
 ```
 
----
+Python 3.9 or newer is the stated requirement; I installed the dependencies and ran the script on Python 3.13 (macOS). On macOS and Linux you also need `traceroute` installed. Windows uses the built-in `tracert`.
 
-## ⚙️ Usage
+The Windows path and the Scapy path were not run for this README (not verified: only a macOS machine was available, without root).
 
-### Basic
+Options:
 
-```bash
-# Windows (no admin needed; uses tracert)
-python nettracer.py --target 8.8.8.8
+| Flag | Default | Meaning |
+|---|---|---|
+| `--target` | required | hostname or IP |
+| `--proto` | `icmp` | `icmp`, `udp` or `tcp` (Scapy path only) |
+| `--count` | 3 | probes per hop |
+| `--max-hops` | 30 | maximum TTL |
+| `--timeout` | 2.0 | seconds per probe |
+| `--dport` | 33434 | destination port for UDP and TCP probes |
+| `--no-plot` | off | skip the chart |
+| `--out` | `nettracer_latency.png` | chart filename |
 
-# macOS/Linux (uses traceroute unless run with sudo & Scapy)
-python nettracer.py --target example.com
+Output is a table of TTL, IP and average latency, then a saved chart:
+
+```
+Hops via os path:
+TTL  IP/Host           Avg Latency
+---  -----------------  -----------
+  1  192.168.1.1            1.2 ms
+  2  *                          *
 ```
 
-### With options
+![Per-hop latency for one trace to 8.8.8.8](./nettracer_latency.png)
 
-```bash
-# ICMP (default), 3 packets/hop, 30 hops
-python nettracer.py --target example.com --proto icmp --count 3 --max-hops 30
+## How it works
 
-# UDP, 4 packets/hop, save chart and skip display
-python nettracer.py --target 8.8.8.8 --proto udp --count 4 --out nettracer.png --no-plot
-```
+`nettracer.py` picks a path at start-up. The Scapy path is used only if Scapy imports, the process is root or Administrator, and Scapy reports a pcap provider (Npcap or libpcap). If a `PermissionError` is raised while sending, it drops to the OS path.
 
-**Common flags**
+The Scapy path sends `--count` probes per TTL with `sr1`, averages the round-trip times that came back, and stops when a reply comes from the target. The OS path runs `traceroute -n -m <hops> -q <count> -w <timeout>` (or `tracert -d -h <hops> -w <ms>` on Windows), then parses each line with a regular expression and averages the millisecond values it finds.
 
-- `--target` (str): Hostname or IP (required)
-- `--proto` (str): `icmp` | `tcp` | `udp` (default: `icmp`)
-- `--count` (int): Probes per hop (default: `3`)
-- `--max-hops` (int): Max TTL/hops (default: `30`)
-- `--timeout` (float): Seconds to wait per probe (default: `2.0`)
-- `--dport` (int): Destination port for TCP/UDP (default: protocol-specific)
-- `--no-plot`: Do not display a chart window
-- `--out` (path): Save latency chart to file (e.g., `nettracer.png`)
+`bench.py` runs `nettracer.py` repeatedly with `--no-plot`, parses the console table, and writes timing statistics to `bench_results.json`. `--print-sample` additionally prints a summary sentence phrased as a resume bullet. The committed `bench_results.json` is one such run: 10 traces to 8.8.8.8 with 3 probes per hop, mean 36.98 s, median 36.77 s, about 15 hops listed and a median of 12 responding. It was produced on a Windows machine, and I did not reproduce it. The hops that did not respond are 3 of the 15 listed in each run.
 
-**Output**
+## Known limits
 
-- Console table: hop → IP/host → average latency
-- Optional chart saved to `--out` (or `nettracer.png` by default)
+- **macOS: the OS path prints an empty table.** The code passes the timeout as a float (`-w 2.0`), and macOS `traceroute` rejects that with `"2.0" bad value for wait time`. The error goes to stderr and is not parsed. Reproduced on macOS with `--timeout 1`. Linux `traceroute` accepts decimals; I did not test it.
+- Hops that do not answer are plotted at 0 ms, so the chart shows dips to zero where the real value is unknown (hops 4, 6, 7 and 11 in the chart above).
+- The Scapy readiness check is a heuristic on `conf.use_pcap` and related flags.
+- The OS parser reads the first IP on each line, so hops where several routers answer show only one.
 
----
+## Status
 
-## 📝 Example
+Built in 2025. Not actively developed.
 
-```bash
-python nettracer.py --target 8.8.8.8 --proto udp --count 4
+## License
 
-# Sample:
-# Hop  IP/Host           Avg Latency
-# 1    192.168.1.1       1.2 ms
-# 2    10.0.0.1          6.8 ms
-# ...
-# Saved plot to nettracer.png
-```
-
-![nettracer.png](./nettracer.png)
-
----
-
-## 🐞 Troubleshooting
-
-- **Windows: “Sudo is disabled on this machine.”**
-  PowerShell doesn’t use `sudo`. Just run `python nettracer.py …`.
-  For raw-socket mode, open PowerShell/VSCode **as Administrator** and install **Npcap**.
-
-- **“No libpcap provider available! pcap won’t be used”**
-  You’re on a platform without libpcap (or not running as admin). NetTracer will fall back to the OS traceroute automatically.
-
-- **“Dropping unsupported option: filter”**
-  Informational Scapy warning on platforms without pcap; safe to ignore when using the fallback path.
-
-- **All `*` for a hop**
-  That router suppresses TTL-expired replies or a firewall is blocking the probe.
-  Try another `--proto`, increase `--timeout`, or continue—later hops may still respond.
-
-- **Permission denied (macOS/Linux)**
-  Use `sudo` to enable raw sockets or rely on the fallback:
-
-  ```bash
-  sudo python nettracer.py --target 1.1.1.1
-  # or without sudo (uses traceroute)
-  python nettracer.py --target 1.1.1.1
-  ```
-
----
-
-## 🤝 Contributing
-
-Issues and PRs welcome! Keep changes small and cross-platform.
-
----
-
-## 📝 License
-
-MIT © Yash Ramesh Shelar
+MIT. See `LICENSE`.
