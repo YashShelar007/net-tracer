@@ -68,7 +68,7 @@
     }
   ],
   "cmd_template": [
-    "<redacted-path>\\NetTracer\\venv\\Scripts\\python.exe",
+    "python",
     "nettracer.py",
     "--target",
     "8.8.8.8",
