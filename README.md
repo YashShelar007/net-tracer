@@ -7,7 +7,7 @@ NetTracer is a command-line traceroute that prints the hops to a host with their
 - It is not a replacement for `mtr` or a monitoring tool. It runs one trace and exits.
 - On the OS fallback path, `--proto` and `--dport` have no effect; the system tool picks its own probe type.
 - It does not resolve hop names. Hops are shown as IP addresses.
-- Tests cover only the OS traceroute command line. Output parsing and the Scapy path are untested.
+- Tests cover only the OS traceroute command line and the command `bench.py` records. Output parsing and the Scapy path are untested.
 
 ## Quickstart
 
