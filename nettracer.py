@@ -8,6 +8,7 @@ falls back to the OS utility (tracert/traceroute) and parses the output.
 """
 
 from __future__ import annotations
+import math
 import os
 import sys
 import platform
@@ -141,7 +142,9 @@ def _os_traceroute_cmd(system: str, target: str, count: int, max_hops: int, time
     # On macOS: `traceroute -n -m <max_hops> -q <count> -w <timeout> <target>`
     # On Linux: same flags work for most distros.
     q = max(1, min(5, count))
-    return ["traceroute", "-n", "-m", str(max_hops), "-q", str(q), "-w", str(timeout), target]
+    # macOS traceroute rejects a decimal wait ("-w 2.0"); other platforms keep the value as given.
+    wait = str(max(1, math.ceil(timeout))) if system == "darwin" else str(timeout)
+    return ["traceroute", "-n", "-m", str(max_hops), "-q", str(q), "-w", wait, target]
 
 
 def _traceroute_os(target: str, count: int, max_hops: int, timeout: float) -> List[Hop]:

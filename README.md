@@ -7,7 +7,7 @@ NetTracer is a command-line traceroute that prints the hops to a host with their
 - It is not a replacement for `mtr` or a monitoring tool. It runs one trace and exits.
 - On the OS fallback path, `--proto` and `--dport` have no effect; the system tool picks its own probe type.
 - It does not resolve hop names. Hops are shown as IP addresses.
-- It has no tests.
+- Tests cover only the OS traceroute command line. Output parsing and the Scapy path are untested.
 
 ## Quickstart
 
@@ -32,7 +32,7 @@ Options:
 | `--proto` | `icmp` | `icmp`, `udp` or `tcp` (Scapy path only) |
 | `--count` | 3 | probes per hop |
 | `--max-hops` | 30 | maximum TTL |
-| `--timeout` | 2.0 | seconds per probe |
+| `--timeout` | 2.0 | seconds per probe; the macOS OS path rounds up to whole seconds |
 | `--dport` | 33434 | destination port for UDP and TCP probes |
 | `--no-plot` | off | skip the chart |
 | `--out` | `nettracer_latency.png` | chart filename |
@@ -59,7 +59,7 @@ The Scapy path sends `--count` probes per TTL with `sr1`, averages the round-tri
 
 ## Known limits
 
-- **macOS: the OS path prints an empty table.** The code passes the timeout as a float (`-w 2.0`), and macOS `traceroute` rejects that with `"2.0" bad value for wait time`. The error goes to stderr and is not parsed. Reproduced on macOS with `--timeout 1`. Linux `traceroute` accepts decimals (untested here).
+- If the system `traceroute` or `tracert` exits with an error, the error is not shown. The table comes out empty and the exit code is 0.
 - Hops that do not answer are plotted at 0 ms, so the chart shows dips to zero where the real value is unknown (hops 4, 6, 7 and 11 in the chart above).
 - The Scapy readiness check is a heuristic on `conf.use_pcap` and related flags.
 - The OS parser reads the first IP on each line, so hops where several routers answer show only one.
