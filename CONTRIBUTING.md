@@ -1,0 +1,9 @@
+# Contributing
+
+There are no automated tests. Before opening a PR:
+
+1. `pip install -r requirements.txt`
+2. Run `python nettracer.py --target 8.8.8.8 --no-plot` and check the table is not empty.
+3. If you touched `bench.py`, run it with `--runs 2`.
+
+Open a PR against `main` with what changed and which OS you tested on. Traceroute behavior differs between Windows, macOS and Linux.
