@@ -55,7 +55,7 @@ TTL  IP/Host           Avg Latency
 
 The Scapy path sends `--count` probes per TTL with `sr1`, averages the round-trip times that came back, and stops when a reply comes from the target. The OS path runs `traceroute -n -m <hops> -q <count> -w <timeout>` (or `tracert -d -h <hops> -w <ms>` on Windows), then parses each line with a regular expression and averages the millisecond values it finds.
 
-`bench.py` runs `nettracer.py` repeatedly with `--no-plot`, parses the console table, and writes timing statistics to `bench_results.json`. `--print-sample` additionally prints a summary sentence phrased as a resume bullet. The committed `bench_results.json` is one such run: 10 traces to 8.8.8.8 with 3 probes per hop, mean 36.98 s, median 36.77 s, about 15 hops listed and a median of 12 responding. It was produced on a Windows machine, and I did not reproduce it. The hops that did not respond are 3 of the 15 listed in each run.
+`bench.py` runs `nettracer.py` repeatedly with `--no-plot`, parses the console table, and writes timing statistics to `bench_results.json`. `--print-sample` additionally prints a summary sentence phrased as a resume bullet. The committed `bench_results.json` is one such run: 10 traces to 8.8.8.8 with 3 probes per hop, mean 36.98 s, median 36.77 s, about 15 hops listed and a median of 12 responding. It was produced on a Windows machine, and I did not reproduce it. Per run, 10 to 12 of the 15 listed hops responded.
 
 ## Known limits
 
