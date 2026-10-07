@@ -68,7 +68,7 @@
     }
   ],
   "cmd_template": [
-    "D:\\Job Search\\Companies\\Fovus Corporation\\NetTracer\\venv\\Scripts\\python.exe",
+    "python",
     "nettracer.py",
     "--target",
     "8.8.8.8",
